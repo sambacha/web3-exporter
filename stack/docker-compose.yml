@@ -40,7 +40,8 @@ services:
   vmagent:
     image: victoriametrics/vmagent
     volumes:
-      - ./prometheus/:/etc/prometheus/
+      - vmagentdata:/vmagentdata
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
     command:
       - '-promscrape.config=/etc/prometheus/prometheus.yml'
       - '-remoteWrite.url=http://victoria-metrics:8428/api/v1/write'
@@ -52,19 +53,28 @@ services:
     networks:
       - web3-batch-exporter
     restart: always
-
+    ports:
+      - 8429:8429
+      
   victoria-metrics:
     image: victoriametrics/victoria-metrics:v1.49.0
     volumes:
       - victoria_metrics_data:/victoria-metrics-data
     ports:
+    ports:
       - 8428:8428
+      - 8089:8089
+      - 8089:8089/udp
+      - 2003:2003
+      - 2003:2003/udp
+      - 4242:4242
     networks:
       - web3-batch-exporter
     restart: always
-
+    
   grafana:
-    image: grafana/grafana
+    container_name: grafana
+    image: grafana/grafana:8.5.1
     depends_on:
       - victoria-metrics
     ports:
